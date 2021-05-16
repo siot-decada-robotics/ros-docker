@@ -1,0 +1,42 @@
+FROM ros:melodic-perception
+
+# Environment  Setup ========================================================================
+#       ROS
+ENV ROS_DISTRO melodic
+ENV HOME_PATH /root
+ENV WORKSPACE_PATH ${HOME_PATH}/spaces
+
+# Create Locations ==========================================================================
+RUN mkdir -p ${HOME_PATH} && \
+    mkdir -p ${WORKSPACE_PATH}
+
+# Copy Files ================================================================================
+COPY spaces ${WORKSPACE_PATH}
+
+# Pre-installation setup ====================================================================
+RUN apt-get update && \ 
+    apt-get install -y \
+    iputils-ping \
+    g++-8 \
+    build-essential \
+    python3-pip && \
+    rm -rf /var/lib/apt/lists/* 
+
+# install and update ros dependencies
+# RUN rosdep update
+# RUN rosdep install --ignore-src --rosdistro $ROS_DISTRO -yr \
+#     --from-paths ${WORKSPACES_PATH}
+
+
+RUN pip3 install -U catkin_tools
+
+# Post-installation setup ===================================================================
+
+WORKDIR ${WORKSPACE_PATH}
+RUN sh build_workspace.sh
+
+RUN echo 'source "$SCRIPTS_PATH/setup.bash"' >> ~/.bashrc
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+
+CMD ["bash"]
